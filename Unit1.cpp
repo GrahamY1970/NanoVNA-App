@@ -9403,6 +9403,7 @@ void __fastcall TForm1::file_listDblClick(TObject *Sender)
 	String ext  = ExtractFileExt(file_list->Items->Strings[index]).LowerCase();
 	int format = -1;
 	     if (ext == ".bmp") format = SD_FILE_BITMAP;
+	else if (ext == ".tif") format = SD_FILE_TIFF;
 	else if (ext == ".s1p") format = SD_FILE_S1P;
 	else if (ext == ".s2p") format = SD_FILE_S2P;
 	if (format >= 0)

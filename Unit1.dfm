@@ -941,6 +941,7 @@ object Form1: TForm1
         Items.Strings = (
           '*.*'
           '*.bmp'
+          '*.tif'
           '*.s1p'
           '*.s2p'
           '*.bin'

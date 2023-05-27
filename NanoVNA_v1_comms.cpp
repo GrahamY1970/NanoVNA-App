@@ -2202,6 +2202,41 @@ void __fastcall CNanoVNA1Comms::processRxBlock()
 									data+= linesize;
 								}
 								::PostMessage(Form1->Handle, WM_SCREEN_CAPTURE, 0, 0);
+							} else if(sd_read_mode == SD_FILE_TIFF) {
+								uint16_t *buf_16 = (uint16_t *)(&m_rx_block.bin_data[4]);
+								// Check header, use hardcoded NanoVNA header data
+								if (buf_16[0] != 0x4949 || buf_16[1] != 0x2A || buf_16[2] != 0x0008) break;
+								int width = buf_16[9];                   // Check Width        !!! hardcoded !!!
+								int height = buf_16[15];                 // Check Height       !!! hardcoded !!!
+								uint16_t compression = buf_16[27];       // Check compression  !!! hardcoded !!!
+								int offset = buf_16[39]|(buf_16[40]<<16);
+								if (height > 800 || width > 1024 || compression != 0x8005) break;
+								int x, y;
+								if (m_capture_bm == NULL) {
+									m_capture_bm = new Graphics::TBitmap();
+									m_capture_bm->Monochrome  = false;
+									m_capture_bm->Transparent = false;
+									m_capture_bm->PixelFormat = pf16bit;
+								}
+								if (m_capture_bm == NULL) break;
+								if (m_capture_bm->Width  != width) m_capture_bm->Width = width;
+								if (m_capture_bm->Height != height) m_capture_bm->Height = height;
+
+								char *src = &m_rx_block.bin_data[4 + offset];
+								for (y = 0; y < height; y++) {
+									uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y];
+									uint8_t line[1024 * 3];
+									for (x = 0; x < width * 3;) {
+										int count = *src++;
+										uint8_t value = *src++;
+										line[x++] = value;
+											 if (count > 0) while(count--) line[x++] = *src++;
+										else if (count < 0) while(count++) line[x++] = value;
+									}
+									for (x = 0; x < width; x++)
+										dst[x] = ((line[3*x+0]&0xF8)<<8)|((line[3*x+1]&0xFC)<<3)|((line[3*x+2]&0xF8)>>3);
+								}
+								::PostMessage(Form1->Handle, WM_SCREEN_CAPTURE, 0, 0);
 							} else if (sd_read_mode == SD_FILE_S1P || sd_read_mode == SD_FILE_S2P) {
 								std::vector <String> lines;
 								unsigned int i = 0, size = m_rx_block.bin_data.size();

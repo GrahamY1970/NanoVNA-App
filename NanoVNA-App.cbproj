@@ -65,6 +65,7 @@
         <RunBCCOutOfProcess>true</RunBCCOutOfProcess>
         <VerInfo_Locale>2057</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=0.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=0.0.0.0;Comments=</VerInfo_Keys>
+        <SubProcessesNumber>8</SubProcessesNumber>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <PackageImports>appanalytics;bcbsmp;bindcomp;bindcompfmx;bindcompvcl;bindengine;dbrtl;dsnap;fmx;IndyCore;IndyProtocols;IndySystem;rtl;svn;tethering;vcl;vclactnband;vcldb;vcldsnap;vclimg;VclSmp;vcltouch;vclwinx;vclx;xmlrtl;$(PackageImports)</PackageImports>
@@ -131,7 +132,7 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
         <TASM_FloatingPoint>Real</TASM_FloatingPoint>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.1.213.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.1.213;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.1.215.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.1.215;Comments=</VerInfo_Keys>
         <Icon_MainIcon>NanoVNA-App_Icon.ico</Icon_MainIcon>
         <LinkPackageStatics>rtl.lib;vcl.lib;vclwinx.lib;vclimg.lib;VclSmp.lib;vclx.lib;IndyCore.lib;IndySystem.lib;bcbsmp.lib</LinkPackageStatics>
         <UsePackages>false</UsePackages>
@@ -139,7 +140,7 @@
         <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
         <BCC_MonitorThis>true</BCC_MonitorThis>
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
-        <VerInfo_Release>213</VerInfo_Release>
+        <VerInfo_Release>215</VerInfo_Release>
         <BCC_DataAlignment>Paragraph</BCC_DataAlignment>
         <ILINK_HeapReserveSize>0x07000000</ILINK_HeapReserveSize>
         <ILINK_StackReserveSize>0x00200000</ILINK_StackReserveSize>
@@ -148,6 +149,8 @@
         <BT_BuildType>Debug</BT_BuildType>
         <AppDPIAwarenessMode>PerMonitor</AppDPIAwarenessMode>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <BCC_MergeDuplicateStrings>true</BCC_MergeDuplicateStrings>
+        <BCC_StringsInReadOnlyDataSeg>true</BCC_StringsInReadOnlyDataSeg>
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="BatteryVoltageUnit.cpp">
