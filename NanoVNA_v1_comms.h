@@ -7,6 +7,7 @@
 
 enum {
 	SD_FILE_BITMAP,
+	SD_FILE_TIFF,
 	SD_FILE_S1P,
 	SD_FILE_S2P
 };
