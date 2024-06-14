@@ -1032,7 +1032,7 @@ void __fastcall CNanoVNA1Comms::processRxBlock()
 										if (pos > 0)
 										{
 											data_unit.m_vna_data.help              = s2;
-											s2                                     = " " + s2.SubString(pos + 10, s2.Length()).Trim() + " ";
+											s2                                     = " " + s2.SubString(pos, s2.Length()).Trim() + " ";
 											data_unit.m_vna_data.cmd_capture       = (s2.Pos(" capture ")     > 1) ? true : false;
 											data_unit.m_vna_data.cmd_bandwidth     = (s2.Pos(" bandwidth ")   > 1) ? true : false;
 											data_unit.m_vna_data.cmd_vbat          = (s2.Pos(" vbat ")        > 1) ? true : false;

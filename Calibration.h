@@ -12,6 +12,7 @@ class CCalibration
 		complexf m_ideal_load;
 		complexf m_ideal_isolation;
 		complexf m_ideal_through;
+		complexf m_ideal_through_ref;
 
 		double m_short_l0;
 		double m_short_l1;
@@ -55,6 +56,7 @@ class CCalibration
 		__property complexf idealLoad      = {read = m_ideal_load};
 		__property complexf idealIsolation = {read = m_ideal_isolation};
 		__property complexf idealThrough   = {read = m_ideal_through};
+		__property complexf idealThroughRef= {read = m_ideal_through_ref};
 };
 
 extern CCalibration calibration_module;

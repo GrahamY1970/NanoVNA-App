@@ -20,6 +20,7 @@ CCalibration::CCalibration()
 	m_ideal_load      = complexf( 0, 0);
 	m_ideal_isolation = complexf( 0, 0);
 	m_ideal_through   = complexf( 1, 0);
+	m_ideal_through_ref = complexf( 0, 0);
 
 	m_use_ideal_short = true;
 	m_short_l0     =    5.7 * 10e-12;
@@ -118,6 +119,7 @@ void __fastcall CCalibration::computeErrorTerms(t_calibration &calibration)
 		complexd delta_e;
 		complexd e30 = gisoln;
 		complexd e10e32;
+		complexd e22;
 
 		try
 		{
@@ -134,11 +136,13 @@ void __fastcall CCalibration::computeErrorTerms(t_calibration &calibration)
 		}
 
 		const complexd throughCal = calibration.point[i].throughCal;
+		const complexd through_refCal = calibration.point[i].through_refCal;
 		try
 		{
-//			e10e32 = ((throughCal / gthru) - e30) * (complexf(1, 0) - (e11 * e11));
-			e10e32 = ((throughCal / gthru) - e30);	// this one drops the load calibration from S21 but produces flat through cable calibrations
-
+			e22 = (through_refCal - e00) / ((through_refCal * e11) - delta_e);
+			// ER correction, compensate port2 impedance  (1.0 - (e11 * e22))
+			e10e32 = ((throughCal / gthru) - e30);
+			e10e32*= 1.0 - (e11 * e22);
 			// inverse to let allow live corrections use faster multiply instead of slower divide
 			e10e32 = complexd(1, 0) / e10e32;
 		}
@@ -155,6 +159,7 @@ void __fastcall CCalibration::computeErrorTerms(t_calibration &calibration)
 		calibration.point[i].delta_e = delta_e;
 		calibration.point[i].e30     = e30;
 		calibration.point[i].e10e32  = e10e32;
+		calibration.point[i].e22     = e22;
 	}
 
 	if (!OK)
@@ -167,6 +172,7 @@ void __fastcall CCalibration::computeErrorTerms(t_calibration &calibration)
 			calibration.point[i].delta_e = complexf(-1, 0);
 			calibration.point[i].e30     = complexf( 0, 0);
 			calibration.point[i].e10e32  = complexf( 1, 0);
+			calibration.point[i].e22     = complexf( 0, 0);
 		}
 	}
 }
@@ -180,13 +186,13 @@ void __fastcall CCalibration::interpolateErrorTerms(t_calibration &calibration, 
 	if (c_size < 2 || p_size < 2)
 		return;
 
-	CRSpline2 spline[5];
+	CRSpline2 spline[6];
 
 	if (!linear)
 	{	// going to do spline interpolation
 
 		// add the spline control points for later computing the interpolated points
-		for (int m = 0; m < 5; m++)
+		for (int m = 0; m < 6; m++)
 		{
 			for (int i = 0; i < c_size; i++)
 			{
@@ -218,13 +224,13 @@ void __fastcall CCalibration::interpolateErrorTerms(t_calibration &calibration, 
 		else
 		if (k > (c_size - 1)) k = c_size - 1;
 
-		complexf error_term[5];
+		complexf error_term[6];
 
 		t_calibration_point cp0 = calibration.point[k + 0];
 
 		if (Hz <= Hz_min || Hz >= Hz_max)
 		{	// can't interpolate below or above the range of data we have
-			for (int m = 0; m < 5; m++)
+			for (int m = 0; m < 6; m++)
 				error_term[m] = cp0.errorTerm[m];
 		}
 		else
@@ -233,13 +239,13 @@ void __fastcall CCalibration::interpolateErrorTerms(t_calibration &calibration, 
 			if (linear)
 			{	// linear
 				const float frac_ip = (float)(ip - floor(ip));	// 0.0 to 1.0 from point to point
-				for (int m = 0; m < 5; m++)
+				for (int m = 0; m < 6; m++)
 					error_term[m] = cp0.errorTerm[m] + ((cp1.errorTerm[m] - cp0.errorTerm[m]) * frac_ip);
 			}
 			else
 			{	// spline
 				const double t = ip / (c_size - 1);	// 0.0 to 1.0
-				for (int m = 0; m < 5; m++)
+				for (int m = 0; m < 6; m++)
 				{
 					const vec2 v = spline[m].interpolatedPoint(t);
 					error_term[m] = complexf(v.x, v.y);
@@ -249,7 +255,7 @@ void __fastcall CCalibration::interpolateErrorTerms(t_calibration &calibration, 
 
 		// save the interpolated error terms
 		m_inter_cal[i].HzCal = Hz;
-		for (int m = 0; m < 5; m++)
+		for (int m = 0; m < 6; m++)
 			m_inter_cal[i].errorTerm[m] = error_term[m];
 	}
 }
@@ -302,8 +308,10 @@ void __fastcall CCalibration::correct(std::vector <t_data_point> &points)
 			complexf s21 = points[i].s21;
 			s11 = (s11 - m_inter_cal[i].e00) / ((s11 * m_inter_cal[i].e11) - m_inter_cal[i].delta_e);
 			s21 -= m_inter_cal[i].e30;
+
 //			s21 /= e10e32;
 			s21 *= m_inter_cal[i].e10e32;	// multiply is faster - we inversed 'e10e32' before using it here
+			s21 *= complexf(1.0, 0) - (s11 * m_inter_cal[i].e11);  // ER correction
 			points[i].s11 = s11;
 			points[i].s21 = s21;
 		}

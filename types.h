@@ -574,6 +574,7 @@ struct t_calibration_point
 	complexf m_load;
 	complexf m_isolation;
 	complexf m_through;
+	complexf m_through_ref;
 
 	// S11
 	complexf m_e00;		// directivity
@@ -583,6 +584,7 @@ struct t_calibration_point
 	// S21
 	complexf m_e30;		// port match
 	complexf m_e10e32;	// transmission
+	complexf m_e22;     // port2 math
 
 	t_calibration_point()
 	{
@@ -598,6 +600,7 @@ struct t_calibration_point
 			case 2: return m_load;
 			case 3: return m_isolation;
 			case 4: return m_through;
+			case 5: return m_through_ref;
 			default: return complexf(0);
 		}
 	}
@@ -611,6 +614,7 @@ struct t_calibration_point
 			case 2: m_load      = sparam; break;
 			case 3: m_isolation = sparam; break;
 			case 4: m_through   = sparam; break;
+			case 5: m_through_ref = sparam; break;
 		}
 	}
 
@@ -623,6 +627,7 @@ struct t_calibration_point
 			case 2: return m_delta_e;
 			case 3: return m_e30;
 			case 4: return m_e10e32;
+			case 5: return m_e22;
 			default: return complexf(0);
 		}
 	}
@@ -636,18 +641,20 @@ struct t_calibration_point
 			case 2: m_delta_e = et; break;
 			case 3: m_e30     = et; break;
 			case 4: m_e10e32  = et; break;
+			case 5: m_e22     = et; break;
 		}
 	}
 
 	__property int64_t HzCal = {read = m_Hz, write = m_Hz};
 
 	// sampled s-params
-	__property complexf openCal                = {read = m_open,      write = m_open};
-	__property complexf shortCal               = {read = m_short,     write = m_short};
-	__property complexf loadCal                = {read = m_load,      write = m_load};
-	__property complexf isolationCal           = {read = m_isolation, write = m_isolation};
-	__property complexf throughCal             = {read = m_through,   write = m_through};
-	__property complexf sParam[const int chan] = {read = getSParam,   write = setSParam};
+	__property complexf openCal                = {read = m_open,        write = m_open};
+	__property complexf shortCal               = {read = m_short,       write = m_short};
+	__property complexf loadCal                = {read = m_load,        write = m_load};
+	__property complexf isolationCal           = {read = m_isolation,   write = m_isolation};
+	__property complexf throughCal             = {read = m_through,     write = m_through};
+	__property complexf through_refCal         = {read = m_through_ref, write = m_through_ref};
+	__property complexf sParam[const int chan] = {read = getSParam,     write = setSParam};
 
 	// error terms
 	__property complexf e00                        = {read = m_e00,        write = m_e00};
@@ -655,6 +662,7 @@ struct t_calibration_point
 	__property complexf delta_e                    = {read = m_delta_e,    write = m_delta_e};
 	__property complexf e30                        = {read = m_e30,        write = m_e30};
 	__property complexf e10e32                     = {read = m_e10e32,     write = m_e10e32};
+	__property complexf e22                        = {read = m_e22,        write = m_e22};
 	__property complexf errorTerm[const int index] = {read = getErrorTerm, write = setErrorTerm};
 };
 

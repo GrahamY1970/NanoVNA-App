@@ -553,12 +553,13 @@ bool __fastcall TCalibrationForm::areCalibrationsEqual(const t_calibration *cal1
 	{
 		const t_calibration_point *c1 = &cal1->point[i];
 		const t_calibration_point *c2 = &cal2->point[i];
-		if (c1->HzCal        != c2->HzCal       ) return false;
-		if (c1->openCal      != c2->openCal     ) return false;
-		if (c1->shortCal     != c2->shortCal    ) return false;
-		if (c1->loadCal      != c2->loadCal     ) return false;
-		if (c1->isolationCal != c2->isolationCal) return false;
-		if (c1->throughCal   != c2->throughCal  ) return false;
+		if (c1->HzCal          != c2->HzCal           ) return false;
+		if (c1->openCal        != c2->openCal         ) return false;
+		if (c1->shortCal       != c2->shortCal        ) return false;
+		if (c1->loadCal        != c2->loadCal         ) return false;
+		if (c1->isolationCal   != c2->isolationCal    ) return false;
+		if (c1->throughCal     != c2->throughCal      ) return false;
+		if (c1->through_refCal != c2->through_refCal  ) return false;
 	}
 
 	return true;
@@ -649,12 +650,13 @@ void __fastcall TCalibrationForm::CalibrationFilesListViewData(TObject *Sender, 
 										{
 											const t_calibration_point *c1 = &cal1->point[i];
 											const t_calibration_point *c2 = &cal2[i];
-											if (c1->HzCal        != c2->HzCal       ) break;
-											if (c1->openCal      != c2->openCal     ) break;
-											if (c1->shortCal     != c2->shortCal    ) break;
-											if (c1->loadCal      != c2->loadCal     ) break;
-											if (c1->isolationCal != c2->isolationCal) break;
-											if (c1->throughCal   != c2->throughCal  ) break;
+											if (c1->HzCal          != c2->HzCal         ) break;
+											if (c1->openCal        != c2->openCal       ) break;
+											if (c1->shortCal       != c2->shortCal      ) break;
+											if (c1->loadCal        != c2->loadCal       ) break;
+											if (c1->isolationCal   != c2->isolationCal  ) break;
+											if (c1->throughCal     != c2->throughCal    ) break;
+											if (c1->through_refCal != c2->through_refCal) break;
 											i++;
 										}
 										if (i >= cal1->point.size())
@@ -1097,6 +1099,7 @@ void __fastcall TCalibrationForm::scanComplete(std::vector <t_data_point> &point
 			m_calibration.point[i].loadCal      = calibration_module.idealLoad;
 			m_calibration.point[i].isolationCal = calibration_module.idealIsolation;
 			m_calibration.point[i].throughCal   = calibration_module.idealThrough;
+			m_calibration.point[i].through_refCal = calibration_module.idealThroughRef;
 		}
 	}
 
@@ -1209,8 +1212,10 @@ void __fastcall TCalibrationForm::scanComplete(std::vector <t_data_point> &point
 				filterValues(m_cal_samples[1], settings.medianCalibration, settings.smoothingCalibration);
 
 				const float scale = 1.0f / (m_measure_count - 1);
-				for (int i = 0; i < size; i++)
+				for (int i = 0; i < size; i++) {
 					m_calibration.point[i].throughCal = m_cal_samples[1][i] * scale;
+					m_calibration.point[i].through_refCal = m_cal_samples[0][i] * scale;
+				}
 
 				stop();
 
@@ -1353,6 +1358,18 @@ void __fastcall TCalibrationForm::ExportFilesBitBtnClick(TObject *Sender)
 		{
 			Application->NormalizeTopMosts();
 			Application->MessageBox(String("Through not saved to ..\n\n" + filename).w_str(), L"Error", MB_ICONERROR | MB_OK);
+			Application->RestoreTopMosts();
+		}
+	}
+	{  // through ref
+		for (unsigned int i = 0; i < m_calibration.point.size(); i++)
+			points[i].sParam[0] = m_calibration.point[i].through_refCal;
+
+		String filename = path + m_calibration.name + " through_ref.s1p";
+		if (!common.saveSParams(points, 1, filename))
+		{
+			Application->NormalizeTopMosts();
+			Application->MessageBox(String("Through Ref not saved to ..\n\n" + filename).w_str(), L"Error", MB_ICONERROR | MB_OK);
 			Application->RestoreTopMosts();
 		}
 	}
@@ -1631,8 +1648,10 @@ void __fastcall TCalibrationForm::ClearCal1Click(TObject *Sender)
 
 		if (!m_calibration.point.empty())
 		{
-			for (unsigned int i = 0; i < m_calibration.point.size(); i++)
+			for (unsigned int i = 0; i < m_calibration.point.size(); i++) {
 				m_calibration.point[i].throughCal = calibration_module.idealThrough;
+				m_calibration.point[i].through_refCal = calibration_module.idealThroughRef;
+			}
 			setButtonStates();
 		}
 	}

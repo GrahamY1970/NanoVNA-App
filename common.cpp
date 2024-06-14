@@ -3548,7 +3548,7 @@ String __fastcall CCommon::loadCalibrationFile(String filename, std::vector <t_c
 		if (params[0][1] == '#' || params[0][1] == '!')
 		{	// comment line
 
-			if (params.size() >= 12)
+			if (params.size() >= 14)
 			{
 				if (	params[ 1] == "hz" &&
 						params[ 2] == "shortr" &&
@@ -3557,10 +3557,12 @@ String __fastcall CCommon::loadCalibrationFile(String filename, std::vector <t_c
 						params[ 5] == "openi" &&
 						params[ 6] == "loadr" &&
 						params[ 7] == "loadi" &&
-						params[ 8] == "throughr" &&
-						params[ 9] == "throughi" &&
-						params[10] == "isolationr" &&
-						params[11] == "isolationi")
+						params[ 8] == "isolationr" &&
+						params[ 9] == "isolationi" && 
+						params[10] == "throughr" &&
+						params[11] == "throughi" &&
+						params[12] == "throughrefr" && 
+						params[13] == "throughrefi")
 				{
 					found_desc = true;
 				}
@@ -3569,7 +3571,7 @@ String __fastcall CCommon::loadCalibrationFile(String filename, std::vector <t_c
 			continue;
 		}
 
-		double values[1 + (2 * 5)];
+		double values[1 + (2 * 6)];
 
 		// valid number of params ?
 		if (params.size() < ARRAY_SIZE(values))
@@ -3602,9 +3604,9 @@ String __fastcall CCommon::loadCalibrationFile(String filename, std::vector <t_c
 		c.shortCal     = complexf (values[1], values[2]);
 		c.openCal      = complexf (values[3], values[4]);
 		c.loadCal      = complexf (values[5], values[6]);
-		c.throughCal   = complexf (values[7], values[8]);
-		c.isolationCal = complexf (values[9], values[10]);
-
+		c.isolationCal = complexf (values[7], values[8]);
+		c.throughCal   = complexf (values[9], values[10]);
+		c.through_refCal = complexf (values[11], values[12]);
 		cal.push_back(c);
 	}
 
@@ -3800,7 +3802,7 @@ String __fastcall CCommon::saveCalibrationFile(String filename, std::vector <t_c
 	//
 	// # Calibration data for NanoVNA-Saver
 	// # Device: NanoVNA-V1
-	// # Hz ShortR ShortI OpenR OpenI LoadR LoadI ThroughR ThroughI IsolationR IsolationI
+	// # Hz ShortR ShortI OpenR OpenI LoadR LoadI IsolationR IsolationI ThroughR ThroughI ThroughRefR ThroughRefI
 	// 130000000 0.001159961 -6.739e-06   0.001140687 -0.000120034 0.00105307  -6.1595e-05  -1.2255e-05  0.000106103 -4.2089e-05 3.3912e-05
 	// 130300000 0.001306215 -1.55e-07    0.001153938  4.0331e-05  0.001130376 -3.4638e-05  -4.792e-06  -2.6533e-05   3.08e-07  -6.7229e-05
 	// 130600000 0.001059723  0.000177196 0.001055034  0.000185995 0.0010398    0.000152485 -5.5821e-05 -1.1299e-05  -8.4228e-05 8.674e-06
@@ -3813,7 +3815,7 @@ String __fastcall CCommon::saveCalibrationFile(String filename, std::vector <t_c
 	lines.push_back("# Date: " + FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
 	lines.push_back("# Device: " + data_unit.m_vna_data.name);
 	lines.push_back("# Points: " + UIntToStr(cal.size()));
-	lines.push_back("# Hz ShortR ShortI OpenR OpenI LoadR LoadI ThroughR ThroughI IsolationR IsolationI");
+	lines.push_back("# Hz ShortR ShortI OpenR OpenI LoadR LoadI IsolationR IsolationI ThroughR ThroughI ThroughRefR ThroughRefI");
 
 	for (unsigned int i = 0; i < cal.size(); i++)
 	{
@@ -3841,13 +3843,19 @@ String __fastcall CCommon::saveCalibrationFile(String filename, std::vector <t_c
 		str.printf(L"%0.9e", cpx.imag());
 		s += " " + padLeft(str, 18);
 
+		cpx = cal[i].isolationCal;
+		str.printf(L"%0.9e", cpx.real());
+		s += " " + padLeft(str, 18);
+		str.printf(L"%0.9e", cpx.imag());
+		s += " " + padLeft(str, 18);
+
 		cpx = cal[i].throughCal;
 		str.printf(L"%0.9e", cpx.real());
 		s += " " + padLeft(str, 18);
 		str.printf(L"%0.9e", cpx.imag());
 		s += " " + padLeft(str, 18);
 
-		cpx = cal[i].isolationCal;
+		cpx = cal[i].through_refCal;
 		str.printf(L"%0.9e", cpx.real());
 		s += " " + padLeft(str, 18);
 		str.printf(L"%0.9e", cpx.imag());
