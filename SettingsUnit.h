@@ -81,6 +81,8 @@ __published:	// IDE-managed Components
 	TToggleSwitch *SmithBothScalesToggleSwitch;
 	TLabel *Label19;
 	TToggleSwitch *linesAntialiasingSwitch;
+	TComboBox *CaptureFormat;
+	TLabel *Label20;
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
@@ -126,6 +128,7 @@ __published:	// IDE-managed Components
 	void __fastcall FormHide(TObject *Sender);
 	void __fastcall SmithBothScalesToggleSwitchClick(TObject *Sender);
 	void __fastcall linesAntialiasingSwitchClick(TObject *Sender);
+	void __fastcall CaptureFormatChange(TObject *Sender);
 
 
 

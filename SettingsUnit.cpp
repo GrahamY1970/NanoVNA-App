@@ -44,6 +44,7 @@ void __fastcall TSettingsForm::FormCreate(TObject *Sender)
 //	ColoursGroupBox->ControlStyle     = ColoursGroupBox->ControlStyle << csOpaque;
 //	FreqBandGroupBox->ControlStyle    = FreqBandGroupBox->ControlStyle << csOpaque;
 	GraphColourPaintBox->ControlStyle = GraphColourPaintBox->ControlStyle << csOpaque;
+	CaptureFormat->ItemIndex          = settings.scrFormat;
 
 	m_mouse_x = -1;
 	m_mouse_y = -1;
@@ -1500,6 +1501,12 @@ void __fastcall TSettingsForm::linesAntialiasingSwitchClick(TObject *Sender)
 
 	if (Application->MainForm)
 		::PostMessage(Application->MainForm->Handle, WM_UPDATE_GRAPH, 0, 0);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TSettingsForm::CaptureFormatChange(TObject *Sender)
+{
+	settings.scrFormat = CaptureFormat->ItemIndex;
 }
 //---------------------------------------------------------------------------
 

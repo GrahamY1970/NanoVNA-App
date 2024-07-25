@@ -6,7 +6,7 @@ object SettingsForm: TSettingsForm
   BorderStyle = bsSizeToolWin
   Caption = 'Settings'
   ClientHeight = 551
-  ClientWidth = 826
+  ClientWidth = 830
   Color = clBtnFace
   Constraints.MinHeight = 570
   Constraints.MinWidth = 840
@@ -18,7 +18,6 @@ object SettingsForm: TSettingsForm
   Font.Style = []
   FormStyle = fsStayOnTop
   KeyPreview = True
-  OldCreateOrder = False
   SnapBuffer = 6
   OnClose = FormClose
   OnCreate = FormCreate
@@ -28,12 +27,11 @@ object SettingsForm: TSettingsForm
   OnMouseEnter = FormMouseEnter
   OnShow = FormShow
   DesignSize = (
-    826
+    830
     551)
-  PixelsPerInch = 96
   TextHeight = 16
   object Label7: TLabel
-    Left = 726
+    Left = 724
     Top = 21
     Width = 59
     Height = 16
@@ -45,6 +43,7 @@ object SettingsForm: TSettingsForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
+    ExplicitLeft = 726
   end
   object Label6: TLabel
     Left = 4
@@ -140,7 +139,7 @@ object SettingsForm: TSettingsForm
   object Memo1: TMemo
     Left = 418
     Top = 40
-    Width = 400
+    Width = 398
     Height = 140
     Anchors = [akLeft, akTop, akRight]
     DoubleBuffered = True
@@ -157,19 +156,20 @@ object SettingsForm: TSettingsForm
     ScrollBars = ssVertical
     TabOrder = 1
     WordWrap = False
-    ExplicitWidth = 398
+    ExplicitWidth = 392
   end
   object FreqBandGroupBox: TGroupBox
     Left = 416
     Top = 180
-    Width = 401
+    Width = 399
     Height = 361
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = ' Frequency Bands '
     TabOrder = 2
-    ExplicitWidth = 399
+    ExplicitWidth = 393
+    ExplicitHeight = 347
     DesignSize = (
-      401
+      399
       361)
     object Label10: TLabel
       Left = 9
@@ -220,7 +220,7 @@ object SettingsForm: TSettingsForm
     object FreqBandListBox: TListBox
       Left = 2
       Top = 102
-      Width = 397
+      Width = 395
       Height = 257
       Cursor = crHandPoint
       Margins.Left = 0
@@ -240,6 +240,8 @@ object SettingsForm: TSettingsForm
       OnClick = FreqBandListBoxClick
       OnDblClick = FreqBandListBoxDblClick
       OnKeyDown = FreqBandListBoxKeyDown
+      ExplicitWidth = 389
+      ExplicitHeight = 243
     end
     object FreqBandDeleteButton: TButton
       Left = 12
@@ -310,7 +312,7 @@ object SettingsForm: TSettingsForm
         '')
     end
     object FreqBandDefaultButton: TButton
-      Left = 314
+      Left = 312
       Top = 20
       Width = 77
       Height = 24
@@ -328,7 +330,7 @@ object SettingsForm: TSettingsForm
       ShowHint = True
       TabOrder = 8
       OnClick = FreqBandDefaultButtonClick
-      ExplicitLeft = 312
+      ExplicitLeft = 307
     end
     object FreqBandEnableToggleSwitch: TToggleSwitch
       Left = 190
@@ -356,6 +358,7 @@ object SettingsForm: TSettingsForm
     Anchors = [akLeft, akBottom]
     Caption = ' VNA Settings '
     TabOrder = 0
+    ExplicitTop = 426
     DesignSize = (
       400
       101)
@@ -396,6 +399,14 @@ object SettingsForm: TSettingsForm
       Width = 24
       Height = 16
       Caption = 'MHz'
+    end
+    object Label20: TLabel
+      Left = 9
+      Top = 69
+      Width = 68
+      Height = 16
+      Alignment = taRightJustify
+      Caption = 'Screenshot '
     end
     object ThresholdEdit: TEdit
       Left = 83
@@ -474,20 +485,34 @@ object SettingsForm: TSettingsForm
       Value = 0
       OnChange = VBatOffsetSpinEditChange
     end
+    object CaptureFormat: TComboBox
+      Left = 83
+      Top = 66
+      Width = 69
+      Height = 24
+      Style = csDropDownList
+      ItemIndex = 0
+      TabOrder = 5
+      Text = 'No pack'
+      OnChange = CaptureFormatChange
+      Items.Strings = (
+        'No pack'
+        'RLE8')
+    end
   end
   object RecordPathEdit: TEdit
     Left = 78
     Top = 10
-    Width = 590
+    Width = 588
     Height = 24
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     Text = 'RecordPathEdit'
     OnChange = RecordPathEditChange
-    ExplicitWidth = 588
+    ExplicitWidth = 582
   end
   object SelectRecordPathBitBtn: TBitBtn
-    Left = 674
+    Left = 672
     Top = 10
     Width = 33
     Height = 24
@@ -552,9 +577,10 @@ object SettingsForm: TSettingsForm
     ShowHint = True
     TabOrder = 4
     OnClick = SelectRecordPathBitBtnClick
+    ExplicitLeft = 666
   end
   object CloseBitBtn: TBitBtn
-    Left = 782
+    Left = 780
     Top = 10
     Width = 36
     Height = 24
@@ -606,6 +632,7 @@ object SettingsForm: TSettingsForm
     TabOrder = 5
     Visible = False
     OnClick = CloseBitBtnClick
+    ExplicitLeft = 774
   end
   object GUIStyleComboBox: TComboBox
     Left = 65

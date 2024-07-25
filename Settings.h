@@ -80,6 +80,8 @@ private:
 		int    baudrate;
 	} m_serial_port;
 
+	int m_screenshot_format;
+
 	int64_t m_start_Hz;
 	int64_t m_stop_Hz;
 	int64_t m_cw_Hz;
@@ -223,6 +225,8 @@ public:
 	__property String velocityFactorName   = {read = m_velocity_factor.name, write = m_velocity_factor.name};
 	__property bool infoPanel              = {read = m_info_panel, write = m_info_panel};
 	__property bool SDPanel                = {read = m_sd_panel, write = m_sd_panel};
+
+	__property int  scrFormat              = {read = m_screenshot_format, write = m_screenshot_format};
 
 	__property String serialPortName       = {read = m_serial_port.name, write = m_serial_port.name};
 	__property int serialPortBaudrate      = {read = m_serial_port.baudrate, write = m_serial_port.baudrate};

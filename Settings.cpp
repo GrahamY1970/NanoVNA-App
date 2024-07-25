@@ -177,6 +177,8 @@ CSettings::CSettings()
 	m_info_panel = false;
 	m_sd_panel = false;
 
+	m_screenshot_format = 0;
+
 	m_start_Hz = 50000;
 	m_stop_Hz  = 900000000;
 	m_cw_Hz    = 145000000;
@@ -746,6 +748,17 @@ void __fastcall CSettings::load()
 		{
 			if (params.size() >= 2)
 				m_sd_panel = (params[1].LowerCase() == "true") ? true : false;
+			continue;
+		}
+
+		if (params[0] == "screenshot_format")
+		{
+			if (params.size() >= 2)
+			{
+				int d;
+				if (TryStrToInt(common.localiseDecimalPoint(params[1]), d))
+					m_screenshot_format = d;
+			}
 			continue;
 		}
 
@@ -1608,6 +1621,9 @@ void __fastcall CSettings::save()
 	buffer.push_back(s);
 
 	s.printf(L"sd_panel_enable %s", String(m_sd_panel ? "true" : "false").c_str());
+	buffer.push_back(s);
+	
+	s.printf(L"screenshot_format %d", m_screenshot_format);
 	buffer.push_back(s);
 
 	s.printf(L"serial_port %d", m_serial_port.baudrate);

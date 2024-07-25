@@ -289,8 +289,11 @@ bool __fastcall CNanoVNA1Comms::requestCapture()
 	if (!data_unit.m_vna_data.cmd_capture)
 		return false;
 
-	addSerialTxCommand("capture");
+	String s = "capture";
+	if (settings.scrFormat != 0)
+		s.printf(L"capture %d", settings.scrFormat);
 
+	addSerialTxCommand(s);
 	return true;
 }
 
@@ -1686,7 +1689,7 @@ void __fastcall CNanoVNA1Comms::processRxBlock()
 								}
 								//else
 								//if (channel < (MAX_CHANNELS + 5))
-								//{	// calibration data
+								//{	// calibration data
 								//	//Form1->m_calibration_data_list[i].sParam[channel - MAX_CHANNELS] = c;
 								//}
 							}
@@ -2124,36 +2127,70 @@ void __fastcall CNanoVNA1Comms::processRxBlock()
 									m_capture_bm->PixelFormat = pf16bit;
 								}
 								if (m_capture_bm == NULL) break;
-								if (m_capture_bm->Width  != data_unit.m_vna_data.lcd_width ) m_capture_bm->Width = data_unit.m_vna_data.lcd_width;
-								if (m_capture_bm->Height != data_unit.m_vna_data.lcd_height) m_capture_bm->Height = data_unit.m_vna_data.lcd_height;
 								int16_t x0, x1, y0, y1;
+								int width = data_unit.m_vna_data.lcd_width;
+								int height = data_unit.m_vna_data.lcd_height;
 								uint16_t *data;
 								int step = 1;
-								if (m_rx_block.type == SERIAL_STATE_SCREEN_CAPTURE) {
-								   x0 = 0; x1 = m_capture_bm->Width;
-								   y0 = 0; y1 = m_capture_bm->Height;
-								   data = (uint16_t*)&m_rx_block.bin_data[0];
-								}
-								else if (m_rx_block.type == SERIAL_STATE_SCREEN_BULK){
+								int compression = 0;
+								screenshot_header *h = (screenshot_header *)&m_rx_block.bin_data[0];
+								if (m_rx_block.type == SERIAL_STATE_SCREEN_BULK){
 								   x0 = m_region.x;
 								   y0 = m_region.y;
 								   x1 = m_region.w + x0;
 								   y1 = m_region.h + y0;
 								   data = (uint16_t*)&m_rx_block.bin_data[8];
-								}
-								else {
+								} else if (m_rx_block.type== SERIAL_STATE_SCREEN_FILL) {
 								   x0 = m_region.x;
 								   y0 = m_region.y;
 								   x1 = m_region.w + x0;
 								   y1 = m_region.h + y0;
 								   data = (uint16_t*)&m_rx_block.bin_data[8];
 								   step = 0;
+								} else if (m_rx_block.type == SERIAL_STATE_SCREEN_CAPTURE && h->magick == 0x4D42 && h->width <= 1024 && h->height <= 768) {
+								   width = h->width;
+								   height = h->height;
+								   compression = h->compression;
+								   x0 = 0; x1 = width;
+								   y0 = 0; y1 = height;
+								   data = (uint16_t*)&m_rx_block.bin_data[sizeof(screenshot_header)];
+								} else if (m_rx_block.type == SERIAL_STATE_SCREEN_CAPTURE) {
+								   x0 = 0; x1 = width;
+								   y0 = 0; y1 = height;
+								   data = (uint16_t*)&m_rx_block.bin_data[0];
 								}
-								for (int16_t y = y0; y < y1; y++) {
-									uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y] + x0;
-									for (int16_t x = x0; x < x1; x++, data+=step){
-										*dst++ = (*data<<8)|(*data>>8);
+								// Resize image if need
+								if (m_capture_bm->Width  != width ) m_capture_bm->Width = width;
+								if (m_capture_bm->Height != height) m_capture_bm->Height = height;
+
+								// Render image on bitmap
+								if (compression == 0) { // No compression, just copy
+									for (int16_t y = y0; y < y1; y++) {
+										uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y] + x0;
+										for (int16_t x = x0; x < x1; x++, data+=step){
+											*dst++ = (*data<<8)|(*data>>8);
+										}
 									}
+								} else if (compression == 1) { // PackBits RLE compression (8bit data)
+									uint8_t *data8 = (uint8_t*)data, *ptr;
+									// First block contain palette
+									uint16_t *palette = (uint16_t *)(data8 + sizeof(uint16_t));
+									// Swap bytes in palette colors
+									for (int i = 0; i < *((uint16_t*)data8)/sizeof(uint16_t); i++) palette[i] = (palette[i]>>8)|(palette[i]<<8);
+									for (int y = 0; y < height; y++) {
+										data8+= *((uint16_t*)data8) + sizeof(uint16_t);         // next block
+										ptr = data8 + sizeof(uint16_t);                         // compressed block data ptr
+										uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y];  // bitmap image line ptr
+										for (int x = 0, j = 0; x < width; ) {                   // decompress block (PackBits RLE compression)
+											int count = (char)ptr[j++];                         // get count
+											if (count < 0) {                                    // repeat color
+												uint16_t color = palette[ptr[j++]];
+												while (count++ <= 0 && x < width) dst[x++] = color;
+											} else                                              // Copy data
+												while (count-- >= 0 && x < width) dst[x++] = palette[ptr[j++]];
+										}
+									}
+
 								}
 
 								::PostMessage(Form1->Handle, WM_SCREEN_CAPTURE, 0, 0);
@@ -2803,6 +2840,28 @@ int __fastcall CNanoVNA1Comms::processRx(t_serial_buffer &serial_buffer)
 						memcpy(&m_rx_block.bin_data[m_rx_block.bin_data_index], &serial_buffer.buffer[k], available_bytes);
 						m_rx_block.bin_data_index += available_bytes;
 						k += available_bytes;
+					}
+
+					// Contain compressed data, if yes -> parse
+					if (m_rx_block.type == SERIAL_STATE_SCREEN_CAPTURE && m_rx_block.bin_data_index >= sizeof(screenshot_header)) {
+						// Check header at block start
+						screenshot_header *h = (screenshot_header *)&m_rx_block.bin_data[0];
+						if (h->magick == 0x4D42 && h->width <= 1024 && h->height <= 768) {
+							// Get block count
+							int block = h->height; if (h->bpp <= 8) block++; // additional palette block
+							int size = sizeof(screenshot_header);   		 // Header size
+							// Skip all lines blocks + palette block (if exist)
+							while(block && size + sizeof(uint16_t) <= m_rx_block.bin_data_index) {
+								size+= ((uint16_t*)&m_rx_block.bin_data[size])[0] + sizeof(uint16_t);
+								block--;
+							}
+							// Receive all blocks and calulated size <= received size
+							if (block == 0 && size <= m_rx_block.bin_data_index) {
+								k-= m_rx_block.bin_data_index - size;   // fix received buffer position
+								m_rx_block.bin_data_index = size;
+								m_rx_block.bin_data.resize(size);       // resize received buffer
+							}
+						}
 					}
 
 					if (m_rx_block.bin_data_index >= m_rx_block.bin_data.size())

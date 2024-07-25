@@ -21,7 +21,6 @@ object VNAScreenCaptureForm: TVNAScreenCaptureForm
   Font.Style = []
   FormStyle = fsStayOnTop
   KeyPreview = True
-  OldCreateOrder = False
   Position = poDefault
   Scaled = False
   OnClose = FormClose
@@ -30,7 +29,6 @@ object VNAScreenCaptureForm: TVNAScreenCaptureForm
   OnKeyDown = FormKeyDown
   OnMouseEnter = FormMouseEnter
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 16
   object ActualSize: TLabel
     Left = 131
@@ -219,6 +217,8 @@ object VNAScreenCaptureForm: TVNAScreenCaptureForm
     ShowCaption = False
     TabOrder = 5
     VerticalAlignment = taAlignBottom
+    ExplicitWidth = 314
+    ExplicitHeight = 226
     DesignSize = (
       320
       240)
