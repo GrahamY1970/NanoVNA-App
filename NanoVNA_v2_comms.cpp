@@ -769,7 +769,7 @@ void __fastcall CNanoVNA2Comms::poll()
 				memset(&m_cap_header, 0, sizeof(m_cap_header));
 //				addTxNulls();
 				addTxNulls(true, 0);
-				addTxWrite1(REG_V2_CAPTURE_SCREEN, 0);
+				addTxWrite1(REG_V2_CAPTURE_SCREEN, settings.scrFormat);
 				sendData();
 				m_tx_cmd.resize(0);
 				m_retries++;
@@ -1169,6 +1169,11 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 					s.printf(L"screen capture header %u*%u*%u, %d bytes to follow ..", m_cap_header.width, m_cap_header.height, m_cap_header.pixel_format, m_cap_header.width * 2 * m_cap_header.height);
 					Form1->pushCommMessage("rx: " + s);
 				}
+				else if (m_cap_header.pixel_format == 8)
+				{	// 8-bit RLE compressed pixel format
+					s.printf(L"screen capture header %u*%u*%u RLE compressed", m_cap_header.width, m_cap_header.height, m_cap_header.pixel_format);
+					Form1->pushCommMessage("rx: " + s);
+				}
 				else
 				{	// unknown pixel format
 					s.printf(L"screen capture header %u*%u*%u - unknown pixel format", m_cap_header.width, m_cap_header.height, m_cap_header.pixel_format);
@@ -1190,6 +1195,17 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 			{	// 16-bit pixel format
 				image_size = m_cap_header.width * 2 * m_cap_header.height;
 			}
+			else if (m_cap_header.pixel_format == 8)
+			{	// 8-bit RLE compressed pixel format, calculate all block size
+				int block = m_cap_header.height + 1;
+				uint8_t *data = (uint8_t *)(&serial_buffer.buffer[k]);
+				while(block && image_size + sizeof(uint16_t) <= size) {
+					image_size+= ((uint16_t*)&data[image_size])[0] + sizeof(uint16_t);
+					block--;
+				}
+				if (block != 0 || image_size > size) // Not receive all blocks, reset result
+					image_size = 0;
+			}
 			else
 			{	// unknown pixel format
 				// stop image capture
@@ -1200,14 +1216,8 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 
 		if (image_size > 0 && size >= image_size)
 		{	// we have received the image data
-
-			// point to the image data
-			uint16_t *data = (uint16_t *)(&serial_buffer.buffer[k]);
-			k += image_size;
-
-			if (m_cap_header.pixel_format == 16)
-			{	// 16-bit pixel format
-
+			if (m_cap_header.pixel_format == 16 || m_cap_header.pixel_format == 8)
+			{	// 16-bit pixel format or 8bpp RLE compressed format
 				if (m_capture_bm == NULL)
 					m_capture_bm = new Graphics::TBitmap();
 				if (m_capture_bm)
@@ -1218,10 +1228,29 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 					m_capture_bm->Width       = m_cap_header.width;
 					m_capture_bm->Height      = m_cap_header.height;
 
-					for (int y = 0; y < m_capture_bm->Height; y++) {
-						uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y];
-						for (int x = 0; x < m_capture_bm->Width; x++, data++){
-							*dst++ = (*data<<8)|(*data>>8);
+					if (m_cap_header.pixel_format == 16) { // Not compressed RGB565 data
+						// point to the image data
+						uint16_t *data = (uint16_t *)(&serial_buffer.buffer[k]);
+						for (int y = 0; y < m_cap_header.height; y++) {
+							uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y];
+							for (int x = 0; x < m_capture_bm->Width; x++, data++) *dst++ = (*data<<8)|(*data>>8);
+						}
+					} else {  // RLE compressed 8 bit palette image
+						uint8_t *data = (uint8_t *)(&serial_buffer.buffer[k]), *ptr;
+						uint16_t *palette = (uint16_t *)(data + sizeof(uint16_t));
+						for (int i = 0; i < *((uint16_t*)data)/sizeof(uint16_t); i++) palette[i] = (palette[i]>>8)|(palette[i]<<8);
+						for (int y = 0; y < m_cap_header.height; y++) {
+							data+= *((uint16_t*)data) + sizeof(uint16_t);           // next block
+							ptr = data + sizeof(uint16_t);                          // block data
+							uint16_t *dst = (uint16_t *)m_capture_bm->ScanLine[y];  // bitmap image line ptr
+							for (int x = 0, j = 0; x < m_cap_header.width; ) {
+								int count = (char)ptr[j++];
+								if (count < 0) {
+									uint16_t color = palette[ptr[j++]];
+									while (count++ <= 0 && x < m_cap_header.width) dst[x++] = color;
+								} else
+									while (count-- >= 0 && x < m_cap_header.width) dst[x++] = palette[ptr[j++]];
+							}
 						}
 					}
 					s.printf(L"screen captured OK %u*%u*%u, %d bytes", m_cap_header.width, m_cap_header.height, m_cap_header.pixel_format, image_size);
@@ -1231,7 +1260,7 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 					::PostMessage(Form1->Handle, WM_SCREEN_CAPTURE, 0, 0);
 				}
 			}
-
+			k += image_size;
 			// back to idle mode
 			memset(&m_cap_header, 0, sizeof(m_cap_header));
 			setMode(MODE_IDLE);
