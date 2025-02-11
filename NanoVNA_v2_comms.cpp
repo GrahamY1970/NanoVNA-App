@@ -505,7 +505,7 @@ void __fastcall CNanoVNA2Comms::requestScan()
 	if (segments < 1 || points_per_segment < 8)
 		return;
 
-	const uint64_t step = span / (points_per_segment - 1);
+	const uint64_t step = (span + points_per_segment - 2) / (points_per_segment - 1);
 	const int points_per_frequency = 1;
 
 	const bool new_start = (m_start != start ||
@@ -1075,12 +1075,11 @@ int __fastcall CNanoVNA2Comms::processRx(t_serial_buffer &serial_buffer)
 				const int segment            = data_unit.m_segment;
 				const int points_per_segment = data_unit.m_points_per_segment;
 				const int num_points         = data_unit.m_points;
-
-				const double seg_span  = generating ? 0 : (double)data_unit.m_freq_span_Hz / segments;
-				const double seg_start = generating ? data_unit.m_freq_cw_Hz : (double)data_unit.m_freq_start_Hz + (seg_span * segment);
-
+				const uint64_t span          = data_unit.m_freq_span_Hz / segments;
+				const uint64_t step          = (span + points_per_segment - 2) / (points_per_segment - 1);
+				const double seg_start = generating ? data_unit.m_freq_cw_Hz : (double)data_unit.m_freq_start_Hz + (span * segment);
 				t_data_point fp;
-				fp.Hz  = I64ROUND(seg_start + ((seg_span * fifo->freq_index) / (points_per_segment - 1)));
+				fp.Hz  = I64ROUND(seg_start + step * fifo->freq_index);
 				fp.s11 = rev0;
 				fp.s21 = rev1;
 
