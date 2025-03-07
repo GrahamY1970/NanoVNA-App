@@ -24,7 +24,6 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
-  OldCreateOrder = False
   Touch.InteractiveGestures = [igPressAndTap]
   OnClose = FormClose
   OnCreate = FormCreate
@@ -37,7 +36,6 @@ object Form1: TForm1
   DesignSize = (
     987
     662)
-  PixelsPerInch = 96
   TextHeight = 16
   object Label12: TLabel
     Left = 8

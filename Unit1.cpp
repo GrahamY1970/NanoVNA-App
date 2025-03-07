@@ -2075,12 +2075,15 @@ bool __fastcall TForm1::updateInfoPanel2(const int graph)
 		common.sprintf(tmp, "%qHz", Hz);
 		qInfo("Frequency", tmp);
 
-		common.sprintf(tmp, "%.5Fm", (float)SPEED_OF_LIGHT / Hz);
-		qInfo("Wavelength", tmp);
+
+		common.sprintf(tmp, "%.5Fm", (float)SPEED_OF_LIGHT / Hz);
+
+		qInfo("Wavelength", tmp);
 
 		common.sprintf(tmp, "%.5Fm", (float)SPEED_OF_LIGHT / (4*Hz));
 		qInfo("1/4 Wavelength", tmp);
-		qInfo("", "");
+
+		qInfo("", "");
 
 		qInfo("S11 info           ", "");
 		// S11 info
@@ -6831,7 +6834,8 @@ void __fastcall TForm1::configGUI()
 		LCMatchingLabel->Visible           = true;
 		LCMatchingToggleSwitch->Visible    = true;
 
-		InfoPanelLabel2->Visible           = true;
+
+		InfoPanelLabel2->Visible           = true;
 		InfoPanelToggleSwitch->Visible     = true;
 
 		if (data_unit.m_vna_data.type == UNIT_TYPE_JANVNA_V2)
@@ -7005,21 +7009,30 @@ void __fastcall TForm1::updateNumberOfPointsComboBox(const bool process)
 			{
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_V1); i++)
 				{
-					const int num = NUM_POINTS_V1[i];
-					cb->AddItem(IntToStr(num), (TObject *)num);
-				}
-			}
-			break;
+
+					const int num = NUM_POINTS_V1[i];
+
+					cb->AddItem(IntToStr(num), (TObject *)num);
+
+				}
+
+			}
+
+			break;
 
 		case UNIT_TYPE_NANOVNA_V2:
 			if (data_unit.m_vna_data.hardware_revision == REG_V2_HARDWARE_REVISION_ACK_2_4)
 			{
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_V2PLUS4); i++)
 				{
-					const int num = NUM_POINTS_V2PLUS4[i];
-					cb->AddItem(IntToStr(num), (TObject *)num);
-				}
-			} else if (data_unit.m_vna_data.firmware_major == 2) {
+
+					const int num = NUM_POINTS_V2PLUS4[i];
+
+					cb->AddItem(IntToStr(num), (TObject *)num);
+
+				}
+
+			} else if (data_unit.m_vna_data.firmware_major == 2) {
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_V2LITE); i++)
 				{
 
@@ -7038,37 +7051,53 @@ void __fastcall TForm1::updateNumberOfPointsComboBox(const bool process)
 					cb->AddItem(IntToStr(num), (TObject *)num);
 
 				}
-			}			break;
+			}
+			break;
 
 		case UNIT_TYPE_JANVNA_V2:
 			{
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_JANVNA_V2); i++)
 				{
-					const int num = NUM_POINTS_JANVNA_V2[i];
-					cb->AddItem(IntToStr(num), (TObject *)num);
-				}
-			}
-			break;
-
+
+					const int num = NUM_POINTS_JANVNA_V2[i];
+
+					cb->AddItem(IntToStr(num), (TObject *)num);
+
+				}
+
+			}
+
+			break;
+
+
 		case UNIT_TYPE_TINYSA:
 			{
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_TINYSA); i++)
 				{
 					const int num = NUM_POINTS_TINYSA[i];
-					cb->AddItem(IntToStr(num), (TObject *)num);
-				}
-			}
-			break;
+
+					cb->AddItem(IntToStr(num), (TObject *)num);
+
+				}
+
+			}
+
+			break;
 
 		default:
 			{
 				for (unsigned int i = 0; i < ARRAY_SIZE(NUM_POINTS_DEFAULT); i++)
 				{
-					const int num = NUM_POINTS_DEFAULT[i];
-					cb->AddItem(IntToStr(num), (TObject *)num);
-				}
-			}
-			break;
+
+					const int num = NUM_POINTS_DEFAULT[i];
+
+					cb->AddItem(IntToStr(num), (TObject *)num);
+
+				}
+
+			}
+
+			break;
 	}
 
 	int item_index = 0;
